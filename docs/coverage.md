@@ -10,7 +10,7 @@
 | 数值表提取 | 375/375 | ✅ 全量 |
 | use() 效果 DSL | 209/375 | 179 全解析 + 30 带分支 |
 | 系统性未支持 | 184 | 循环放招 31、充能球、姿态、Scry…（需系统级移植） |
-| **引擎当前可执行** | **88** | 数值+效果+power 白名单全通过 |
+| **引擎当前可执行** | **93** | 数值+效果+power 白名单全通过 |
 
 ### 引擎拒绝原因分布（Top）
 
@@ -36,19 +36,19 @@
 | 2 | NoDrawPower |
 | 2 | EnergizedPower |
 | 2 | IntangiblePlayerPower |
-| 2 | Artifact |
 | 1 | BerserkPower |
 | 1 | BrutalityPower |
-| 1 | Combust |
 | 1 | DarkEmbrace |
 | 1 | DemonFormPower |
 | 1 | DoubleTapPower |
+| 1 | EvolvePower |
+| 1 | FeelNoPainPower |
 
 ## 其他实体层
 
 | 内容 | 数据提取 | 行为实现 |
 |---|---|---|
-| 怪物 | 73/73 ✅ | 2/73（大颚虫/邪教徒，手写行为） |
+| 怪物 | 73/73 ✅ | 2/73（颚虫/邪教徒，手写行为） |
 | power | 123 条 ✅ | 11 种（Strength/易伤/虚弱/脆弱/Ritual/LoseStrength/敏捷/毒/金属化/再生） |
 | 遗物 | 186 条 ✅ | 0（战斗内主动遗物待做） |
 | 药水 | 43 条 ✅ | 0 |
