@@ -1,6 +1,9 @@
 # Rust
 neow-sim/target/
 
+# 本地工具与反编译产物（版权，勿入库）
+.tools/
+
 # Java / Gradle
 neow-bridge/build/
 .gradle/
