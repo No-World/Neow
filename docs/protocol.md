@@ -8,6 +8,7 @@
 
 这是 `neow-sim`、`neow-bridge`、`neow-ai` 三个子项目共享的**唯一接口真相源**。
 任何一方的接口改动都必须先改这里，并同步三方的 conformance 测试。
+译名遵循 [glossary.md](glossary.md)（官方简中本地化为准）。
 
 ## 设计原则
 
@@ -33,11 +34,11 @@
     "energy": 3, "energy_cap": 3, "gold": 156,
     "powers": [ { "id": "Strength", "amount": 2 } ]
   },
-  "hand":   [ card, ... ],
-  "draw_pile":  { "count": 12, "cards": [ card, ... ] },  // 集合，顺序隐藏
-  "discard_pile": [ card, ... ],
-  "exhaust_pile": [ card, ... ],
-  "master_deck":  [ card, ... ],
+  "hand":   [ card, ... ],                                        // 显示序，play 的 card_index 直接引用
+  "draw_pile":  { "count": 12, "cards": [ card, ... ], "order": "hidden" },  // 集合，顺序不可见（cheat 模式下 order="true"）
+  "discard_pile": { "count": 6, "cards": [ card, ... ], "order": "chrono" }, // 可见顺序：index 0=堆底，末尾=堆顶（最新）
+  "exhaust_pile": { "count": 1, "cards": [ card, ... ], "order": "chrono" }, // 同上
+  "master_deck": { "count": 12, "cards": [ card, ... ], "order": "sorted" }, // 无序集合，按 id+升级数排序输出
   "relics":  [ { "id": "BurningBlood", "counter": -1, "enabled": true }, ... ],
   "potions": [ { "id": "FirePotion" } | null, null, null ],
   "monsters": [
@@ -97,7 +98,7 @@
 // —— 战斗内选择屏（v0.2，源码勘察：HandCardSelectScreen / GridCardSelectScreen / Scry）——
 { "type": "hand_select",  "indices": [0, 3] }        // 手牌选择屏：过量弃牌、赌博、双持等
 { "type": "grid_select",  "pile": "draw|discard|exhaust|hand|deck|mixed", "indices": [0, 1] }  // 牌堆网格选择屏
-{ "type": "scry", "discard_indices": [0, 2], "top_indices": [1, 3] }   // 占卜：弃掉 discard_indices；保留牌维持原序（top_indices 仅校验用）
+{ "type": "scry", "discard_indices": [0, 2], "top_indices": [1, 3] }   // 预见（Scry）：弃掉 discard_indices；保留牌维持原序（top_indices 仅校验用）
 ```
 
 ### 选择屏动作的参数化描述符
@@ -118,7 +119,7 @@
 ## v0.3 勘误与说明
 
 - 原版游戏**没有**可通过主动点击使用的遗物（`AbstractRelic` 无 use 路径），`relic` 动作映射到 Boss 遗物三选一屏；`shop_sell` 在原版不存在，移除。
-- 原版占卜（ScryAction）**不允许重排**保留牌的顺序，保留牌维持抽牌堆原序；`top_indices` 语义弱化为校验用。
+- 原版预见（ScryAction）**不允许重排**保留牌的顺序，保留牌维持抽牌堆原序；`top_indices` 语义弱化为校验用。
 - `potion` 动作仅战斗内合法（`AbstractPotion.canUse()` 要求 RoomPhase.COMBAT）。
 - `reward.take_indices` 逐项结算：若中途某 CARD 项打开卡牌奖励屏，则当次 step 停在 `screen.type == "card_reward"`，
   其余未处理下标作废（一次 step 最多打开一个卡牌奖励屏）。

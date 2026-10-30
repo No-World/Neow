@@ -13,7 +13,7 @@ Neow/                    # GitHub 私有仓库：No-World/Neow
 ├── neow-bridge/         # Java：STS 模组 NeowBridge（fork 自 CommunicationMod）——真游戏观测/控制/对拍裁判
 ├── neow-sim/            # Rust：高速确定性规则引擎——训练主力，独立可用
 ├── neow-ai/             # Python：AI 本体——IL / RL / 战斗内搜索 / 评测
-├── docs/                # 总体文档 + 统一 gym 协议（protocol.md，三者接口真相源）
+├── docs/                # 总体文档 + 统一 gym 协议（protocol.md，三者接口真相源）+ 译名对照表（glossary.md）
 └── .github/workflows/   # CI：按子项目路径触发，自动构建各自互不干扰
 ```
 
