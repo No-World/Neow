@@ -1,5 +1,7 @@
-# Neow 统一 gym 协议 v0.3（草案）
+# Neow 统一 gym 协议 v0.4（草案）
 
+> v0.4（2026-10-30）：药水系统落地（neow-sim 42/43）：探素（discovery）与姿态药水（stance_choice）两个新决策面；
+> 观测新增药水栏（potions 数组，None=空栏，元素含 kind/potency）与 escaped 标记（烟雾弹逃离：战斗结束非失败、无奖励）。
 > v0.2（2026-10-30）：依据游戏源码勘察（docs/combat-actions.md）补充战斗内选择类动作：hand_select / grid_select / scry / potion_discard。
 > v0.3（2026-10-30）：neow-bridge 落地时补齐游戏实际存在但 v0.2 缺失的决策面：
 > 卡牌奖励屏（card_pick / card_bowl / skip）、宝箱（chest_open）、Boss 遗物（relic）、Boss 门（boss）、
@@ -60,6 +62,22 @@
 }
 ```
 
+### 休息处（rest）屏字段
+
+血量/遗物/牌组在观测顶层（player / relics / master_deck）恒定存在；休息屏选项自带后续决策所需信息，
+候选牌列表顺序与其后 grid_select 屏完全一致（下标直接可用）：
+
+```jsonc
+"screen": { "type": "rest", "options": [
+  { "index": 0, "name": "sleep", "usable": true, "heal": 24 },
+  { "index": 1, "name": "smith", "usable": true, "cards": [ card, ... ] },  // 可升级牌（与锻造网格同序）
+  { "index": 2, "name": "toke",  "usable": true, "cards": [ card, ... ] },  // 烟斗：可删牌（与焚牌网格同序）
+  { "index": 3, "name": "dig",   "usable": true },   // 铲子：无后续选牌
+  { "index": 4, "name": "lift",  "usable": true }    // 举重：无后续选牌
+] }
+```
+```
+
 ### card 对象
 
 ```jsonc
@@ -99,6 +117,10 @@
 { "type": "hand_select",  "indices": [0, 3] }        // 手牌选择屏：过量弃牌、赌博、双持等
 { "type": "grid_select",  "pile": "draw|discard|exhaust|hand|deck|mixed", "indices": [0, 1] }  // 牌堆网格选择屏
 { "type": "scry", "discard_indices": [0, 2], "top_indices": [1, 3] }   // 预见（Scry）：弃掉 discard_indices；保留牌维持原序（top_indices 仅校验用）
+
+// —— 药水衍生的选择屏（v0.4，DiscoveryAction / ChooseOneAction）——
+{ "type": "discovery",     "index": 1 }             // 探素三选一（攻击/技能/能力/无色药水）：选中卡入手且本回合 0 费
+{ "type": "stance_choice", "wrath": true }          // 姿态药水：进入愤怒（true）或平静（false）
 ```
 
 ### 选择屏动作的参数化描述符
@@ -117,6 +139,9 @@
 - `info.protocol_version`：本协议版本号，三方必须一致才能互通。
 
 ## v0.3 勘误与说明
+
+- 瓶中精灵（Fairy in a Bottle）不可主动使用（`canUse() == false`），仅作为免死被动：致死伤害时自动消耗并回到最大生命 30%；不占用 `legal_actions`。
+- 烟雾弹（Smoke Bomb）结束战斗但不判负：`done=true`、`reward=0`（非胜利）、`info.escaped=true`；M3 奖励层据此不给战利品。
 
 - 原版游戏**没有**可通过主动点击使用的遗物（`AbstractRelic` 无 use 路径），`relic` 动作映射到 Boss 遗物三选一屏；`shop_sell` 在原版不存在，移除。
 - 原版预见（ScryAction）**不允许重排**保留牌的顺序，保留牌维持抽牌堆原序；`top_indices` 语义弱化为校验用。
