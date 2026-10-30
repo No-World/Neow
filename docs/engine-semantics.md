@@ -119,5 +119,71 @@ openConfirmationGrid(group, tipMsg)
 2. Rust 实现 `RandomXS128` + `java.util.Random(LCG)` + Fisher-Yates（13 流 + counter）
 3. 抽牌堆内部表示：列表尾 = 堆顶
 4. 伤害/格挡/能量走"修改器管线"抽象
-5. M2 最小集：useCard 管线 + Damage/GainBlock/Draw/Shuffle/DiscardAtEndOfTurn + 回合边界 + 颚虫（含 `rollMove`/`takeTurn`，需再反编译 JawWorm 与 AbstractMonster）
-6. 下一步反编译：JawWorm、AbstractMonster（意图机）、DrawCardAction（含游戏手牌上限触发链）、DiscardAction、EnergyPanel
+5. M2 最小集：useCard 管线 + Damage/GainBlock/Draw/Shuffle/DiscardAtEndOfTurn + 回合边界 + 颚虫（完整规格见 §9，已勘察完毕）
+6. 下一步反编译：DrawCardAction（含手牌上限触发链）、DiscardAction、EnergyPanel、（可选）Strike/Defend/Bash、DamageInfo
+
+## 9. 怪物侧（AbstractMonster / MonsterGroup / JawWorm）
+
+### 意图机生命周期
+
+```
+战斗开始: init() → rollMove() = getMove(aiRng.random(99)) → setMove（记入 moveHistory）
+显示: createIntent()（从 move 刷新，意图伤害走 calculateDamage 管线）
+行动: takeTurn() 按招式 enqueue 效果，末尾必带 RollMoveAction
+         → 下回合意图在“本回合行动结束时”掷出
+决策依据: moveHistory 的 lastMove / lastTwoMoves / lastMoveBefore
+```
+
+**随机源确认：意图选择全部走 `aiRng`**（主掷 `random(99)` + 招内 `randomBoolean(p)=nextFloat()<p`），完全可复刻。
+
+### 数值管线（意图伤害 calculateDamage）
+
+```
+base → (无尽blight) → 怪powers atDamageGive → 玩家powers atDamageReceive
+     → stance atDamageReceive → BackAttack×1.5(Surrounded背刺) 
+     → 怪powers atDamageFinalGive → 玩家powers atDamageFinalReceive → floor
+```
+
+- HP 掷值：`setHp(min,max) = monsterHpRng.random(min,max)`
+- `applyPowers()`：每条 damage 过管线 + BackAttack 修正
+
+### 怪物受伤钩子顺序（damage()）
+
+```
+IntangiblePlayer→1 → decrementBlock → 玩家遗物 onAttackToChangeDamage
+→ 攻方powers onAttackToChangeDamage → 自身powers onAttackedToChangeDamage
+→ 玩家遗物 onAttack → 自身powers wasHPLost → 攻方powers onAttack
+→ 自身powers onAttacked → 扣血
+死亡: 自身powers onDeath → 玩家遗物 onMonsterDeath → 基本全灭时 cleanCardQueue+清limbo
+```
+
+### 怪物回合边界（MonsterGroup）
+
+- `applyPreTurnLogic`：怪掉格挡（无壁垒）+ startOfTurnPowers —— 发生在**怪物行动前**
+- `queueMonsters`：所有非死/逃怪入 monsterQueue 逐个 takeTurn
+- `applyEndOfTurnPowers`：怪 applyEndOfTurnTriggers + 双方 powers atEndOfRound
+- 死亡状态机：isDying(动画中)→isDead；`areMonstersBasicallyDead`(isDying||isEscaping) vs `areMonstersDead`(isDead||escaped)
+- `getRandomMonster(exception, aliveOnly, rng)`：3参版走传入 RNG；2参版用 MathUtils.random（全局非种子）——调用方决定确定性
+
+### JawWorm 完整规格（M2 对手）
+
+| 招式 | byte | 意图 | 效果 | A2+ | A17+ |
+|---|---|---|---|---|---|
+| 咬噬 Chomp | 1 | ATTACK | 11 伤 | 12 | 12 |
+| 低吼 Bellow | 2 | DEFEND_BUFF | +3力 +6格挡 | +4力 | +5力 +9格挡 |
+| 猛击 Thrash | 3 | ATTACK_DEFEND | 7伤 +5格挡 | 同 | 同 |
+
+HP：40-44（A7+：42-46，monsterHpRng）；hardMode 变体（M2 用不到）：firstMove=false + 战前 +力+格挡
+
+决策树（getMove，num = aiRng.random(99)）：
+
+```
+首招恒为 Chomp（firstMove）
+num<25 (25%): 上一招Chomp? → randomBoolean(0.5625)? Bellow : Thrash；否则 Chomp
+25≤num<55 (30%): 连续两招Thrash? → randomBoolean(0.357)? Chomp : Bellow；否则 Thrash
+num≥55 (45%): 上一招Bellow? → randomBoolean(0.416)? Chomp : Thrash；否则 Bellow
+```
+
+### M2 状态小结
+
+一场 JawWorm 战斗 = 出牌管线 + 三招怪物 + 四条 RNG 流（aiRng / monsterHpRng / shuffleRng / cardRng）+ 回合边界。**语义已齐，可以开写 Rust。**
