@@ -119,7 +119,7 @@ openConfirmationGrid(group, tipMsg)
 2. Rust 实现 `RandomXS128` + `java.util.Random(LCG)` + Fisher-Yates（13 流 + counter）
 3. 抽牌堆内部表示：列表尾 = 堆顶
 4. 伤害/格挡/能量走"修改器管线"抽象
-5. M2 最小集：useCard 管线 + Damage/GainBlock/Draw/Shuffle/DiscardAtEndOfTurn + 回合边界 + 颚虫（完整规格见 §9，已勘察完毕）
+5. M2 最小集：useCard 管线 + Damage/GainBlock/Draw/Shuffle/DiscardAtEndOfTurn + 回合边界 + 大颚虫（完整规格见 §9，已勘察完毕）
 6. 下一步反编译：DrawCardAction（含手牌上限触发链）、DiscardAction、EnergyPanel、（可选）Strike/Defend/Bash、DamageInfo
 
 ## 9. 怪物侧（AbstractMonster / MonsterGroup / JawWorm）
@@ -170,7 +170,7 @@ IntangiblePlayer→1 → decrementBlock → 玩家遗物 onAttackToChangeDamage
 | 招式 | byte | 意图 | 效果 | A2+ | A17+ |
 |---|---|---|---|---|---|
 | 咬噬 Chomp | 1 | ATTACK | 11 伤 | 12 | 12 |
-| 低吼 Bellow | 2 | DEFEND_BUFF | +3力 +6格挡 | +4力 | +5力 +9格挡 |
+| 咆哮 Bellow | 2 | DEFEND_BUFF | +3力 +6格挡 | +4力 | +5力 +9格挡 |
 | 猛击 Thrash | 3 | ATTACK_DEFEND | 7伤 +5格挡 | 同 | 同 |
 
 HP：40-44（A7+：42-46，monsterHpRng）；hardMode 变体（M2 用不到）：firstMove=false + 战前 +力+格挡
@@ -196,9 +196,17 @@ num≥55 (45%): 上一招Bellow? → randomBoolean(0.416)? Chomp : Thrash；否�
 |---|---|---|
 | A5+ | 战后治疗：回满 → 缺失生命的 75%（AbstractDungeon:2562） | M3 结算层 |
 | A6+ | 起始 90% 最大生命（AbstractDungeon:2574，round(max×0.9)） | ✅ 已实现 |
-| A10+ | 起始卡组加入飞升者之灾（AscendersBane，-2费不可打出） | ✅ 已实现 |
+| A10+ | 起始卡组加入进阶之灾（AscendersBane，-2费不可打出） | ✅ 已实现 |
 | A11+ | 药水栏 -1（AbstractPlayer:193） | M3 局外层 |
 | A13+ | Boss 金币奖励 ×0.75（AbstractRoom:282） | M3 奖励层 |
 | A2/A7/A17 等 | 怪物数值分档（见各怪 stats） | ✅ 随怪实现 |
 
 其余进阶项（精英更多/更强等）属地图生成层，M3 接入。
+
+## 11. 中文译名规范
+
+一切中文译名以游戏官方本地化为准：`neow-sim/data/zhs/`（从 desktop-1.0.jar 的
+localization/zhs 提取，权威源）。已核正：进阶之灾(AscendersBane)、顺劈斩、金刚臂、
+活动肌肉、全身撞击、愤怒、双重打击、铁斩波、剑柄打击、耸肩无视、大颚虫、咆哮(Bellow)、
+抽打(Thrash)、念咒(Cultist Ritual)、蛇之戒指、破损核心、至纯之水。
+注：Chomp/Dark Strike 等在官方 MOVES 数组中无招式名，文档中以"咬噬/暗击"为描述性指代。
