@@ -1,0 +1,9 @@
+[submodule "neow-sim"]
+	path = neow-sim
+	url = https://github.com/No-World/neow-sim.git
+[submodule "neow-bridge"]
+	path = neow-bridge
+	url = https://github.com/No-World/neow-bridge.git
+[submodule "neow-ai"]
+	path = neow-ai
+	url = https://github.com/No-World/neow-ai.git
