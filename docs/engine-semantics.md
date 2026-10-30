@@ -187,3 +187,18 @@ num≥55 (45%): 上一招Bellow? → randomBoolean(0.416)? Chomp : Thrash；否�
 ### M2 状态小结
 
 一场 JawWorm 战斗 = 出牌管线 + 三招怪物 + 四条 RNG 流（aiRng / monsterHpRng / shuffleRng / cardRng）+ 回合边界。**语义已齐，可以开写 Rust。**
+
+## 10. 进阶（Ascension）玩家侧修正（源码核对）与默认状态
+
+**项目默认状态：全解锁 + A20**（卡池/遗物无解锁过滤；评测基准 A20 心脏）。
+
+| 阈值 | 效果（源码位置） | 引擎状态 |
+|---|---|---|
+| A5+ | 战后治疗：回满 → 缺失生命的 75%（AbstractDungeon:2562） | M3 结算层 |
+| A6+ | 起始 90% 最大生命（AbstractDungeon:2574，round(max×0.9)） | ✅ 已实现 |
+| A10+ | 起始卡组加入飞升者之灾（AscendersBane，-2费不可打出） | ✅ 已实现 |
+| A11+ | 药水栏 -1（AbstractPlayer:193） | M3 局外层 |
+| A13+ | Boss 金币奖励 ×0.75（AbstractRoom:282） | M3 奖励层 |
+| A2/A7/A17 等 | 怪物数值分档（见各怪 stats） | ✅ 随怪实现 |
+
+其余进阶项（精英更多/更强等）属地图生成层，M3 接入。
