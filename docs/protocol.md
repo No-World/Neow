@@ -92,7 +92,7 @@
 `step(action) -> (observation, legal_actions, reward, done, info)`
 
 - `reward`：引擎只给**终局 ±1**（胜/负）；训练侧的 shaping 在 `neow-ai` 内部做，不污染协议。
-- `legal_actions`：当前局面全部合法动作列表；`step` 收到非法动作直接抛错（训练侧负责 mask）。
+- `legal_actions`：当前局面全部**合法正常**动作列表（利用动画时序/路径判定等漏洞的序列不在动作空间内，见 docs/parity-spec.md 偏差登记表）；`step` 收到非法动作直接抛错（训练侧负责 mask）。
 - `info.protocol_version`：本协议版本号，三方必须一致才能互通。
 
 ## conformance 测试
