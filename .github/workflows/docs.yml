@@ -1,0 +1,25 @@
+name: docs lint
+
+# 子项目 CI 已迁移至各自仓库（拆分为 gitlink 子模块后本仓库无法直接访问其内容）：
+# - neow-sim  → No-World/neow-sim  .github/workflows/ci.yml
+# - neow-bridge → No-World/neow-bridge  .github/workflows/ci.yml
+# - neow-ai   → No-World/neow-ai  .github/workflows/ci.yml
+# 本仓库只保留文档一致性检查。
+
+on:
+  push:
+    paths: ["docs/**", "README.md", ".github/workflows/docs.yml"]
+  pull_request:
+    paths: ["docs/**", "README.md"]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 文档表存在性
+        run: |
+          test -s docs/roadmap.md
+          test -s docs/coverage.md
+          test -s docs/protocol.md
+          grep -q "protocol_version" docs/protocol.md
