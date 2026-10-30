@@ -49,9 +49,9 @@ Neow/                    # GitHub 私有仓库：No-World/Neow
 
 ## 路线图（详见 [docs/roadmap.md](docs/roadmap.md)）
 
-- [ ] **P0** 环境桥接（`neow-bridge/`）：fork CommunicationMod，跑通"外部程序控制游戏"
-- [ ] **P1** 高速模拟器（`neow-sim/`）：Rust 复刻战斗与地图规则，保真度对拍校验
-- [ ] **P2** 模仿学习底座（`neow-ai/`）：sts_lightspeed 蒸馏，policy + value 网络
+- [ ] **P0** 高速模拟器（`neow-sim/`）：Rust 复刻战斗与地图规则，M1→M3 整局闭环 + 规则级单测
+- [ ] **P1** 模仿学习底座（`neow-ai/`）：sts_lightspeed 蒸馏，policy + value 网络
+- [ ] **P2** 环境桥接与对拍（`neow-bridge/`）：fork CommunicationMod，M4 对拍锁定模拟器正确性——大规模 RL 前的最后关卡
 - [ ] **P3** 强化学习：PPO 自迭代，超越老师
 - [ ] **P4** 战斗内搜索：洗牌 determinization + policy/value 剪枝的浅 MCTS
 - [ ] **P5** 评测与出圈：固定种子 A20 心脏击杀率（以游戏内形态计量：无S/L、非穷举）+ Mortal 式 Review 工具
@@ -64,6 +64,6 @@ Neow/                    # GitHub 私有仓库：No-World/Neow
 
 ## 第一步
 
-1. `neow-bridge/`：fork CommunicationMod，跑通"收发一条 JSON"，再写 10 行脚本自动打出第一张牌。
-2. `neow-sim/`：骨架已就绪（`cargo build` 即可编译），先实现"Strike 打 JawWorm"最小战斗链路。
-3. 克隆 `sts_lightspeed`，读它的战斗模拟代码，评估复刻工作量。
+1. `neow-sim/`：骨架已就绪（`cargo build` 即可编译），直接开工 M2——“Strike/Defend/Bash 打 JawWorm”最小战斗闭环。
+2. 克隆 `sts_lightspeed`，读它的战斗模拟代码，对照实现伤害/格挡/力量管线。
+3. `neow-bridge/`（模组）后置到 P2 再动工，期间不需要装游戏。
