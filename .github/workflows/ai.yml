@@ -1,0 +1,22 @@
+name: neow-ai CI
+
+on:
+  push:
+    paths: ["neow-ai/**", ".github/workflows/ai.yml"]
+  pull_request:
+    paths: ["neow-ai/**"]
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff
+      - name: ruff（初期仅报告）
+        run: ruff check neow-ai
+        continue-on-error: true
+      - run: python -m compileall -q neow-ai
+      # 有测试后替换为：pip install -e neow-ai[test] && pytest neow-ai

@@ -1,0 +1,22 @@
+# Rust
+neow-sim/target/
+
+# Java / Gradle
+neow-bridge/build/
+.gradle/
+
+# Python
+__pycache__/
+*.egg-info/
+.venv/
+
+# 数据与产物
+neow-ai/data/
+neow-ai/models/ckpt/
+runs/
+logs/
+
+# IDE / OS
+.idea/
+.vscode/
+Thumbs.db

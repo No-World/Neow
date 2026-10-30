@@ -1,0 +1,26 @@
+name: neow-sim CI
+
+on:
+  push:
+    paths: ["neow-sim/**", ".github/workflows/sim.yml"]
+  pull_request:
+    paths: ["neow-sim/**"]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: neow-sim
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: neow-sim
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test --all
+      - run: cargo build --release
