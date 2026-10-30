@@ -8,41 +8,41 @@
 | 层 | 数量 | 说明 |
 |---|---|---|
 | 数值表提取 | 375/375 | ✅ 全量 |
-| use() 效果 DSL | 209/375 | 179 全解析 + 30 带分支 |
-| 系统性未支持 | 184 | 循环放招 31、充能球、姿态、Scry…（需系统级移植） |
-| **引擎当前可执行** | **93** | 数值+效果+power 白名单全通过 |
+| use() 效果 DSL | 313/375 | 264 全解析 + 49 带分支 |
+| 系统性未支持 | 50 | 循环放招 0、充能球、姿态、Scry…（需系统级移植） |
+| **引擎当前可执行** | **142** | 数值+效果+power 白名单全通过 |
 
 ### 引擎拒绝原因分布（Top）
 
 | 数量 | 原因 |
 |---|---|
-| 31 | 未支持动作: loop |
 | 25 | 不可打出(-2费) |
-| 9 | 表达式未解析 |
+| 22 | 循环次数未解析 |
+| 16 | 表达式未解析 |
 | 9 | 未支持动作: MakeTempCardInHandAction |
-| 6 | 未支持动作: MakeTempCardInDrawPileAction |
-| 6 | 未支持动作: DiscardAction |
-| 5 | 未支持动作: ChangeStanceAction |
+| 7 | 未支持动作: ChannelAction |
+| 6 | power 未实现: Strength |
+| 5 | 循环体内 Damage 不支持 |
 | 5 | power 未实现: FocusPower |
-| 5 | 未支持动作: ChannelAction |
 | 3 | ExhaustAction 语义待核 |
+| 3 | 伤害目标异常: Unknown |
 
 ### 未实现 power 阻塞清单（实现即解锁，按解锁数排序）
 
 | 卡数 | power |
 |---|---|
+| 6 | Strength |
 | 5 | FocusPower |
+| 3 | EnergizedPower |
 | 3 | MantraPower |
 | 2 | NoDrawPower |
-| 2 | EnergizedPower |
 | 2 | IntangiblePlayerPower |
 | 1 | BerserkPower |
 | 1 | BrutalityPower |
+| 1 | CorruptionPower |
 | 1 | DarkEmbrace |
 | 1 | DemonFormPower |
 | 1 | DoubleTapPower |
-| 1 | EvolvePower |
-| 1 | FeelNoPainPower |
 
 ## 其他实体层
 
