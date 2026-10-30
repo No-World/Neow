@@ -1,4 +1,6 @@
-# Neow 统一 gym 协议 v0.1（草案）
+# Neow 统一 gym 协议 v0.2（草案）
+
+> v0.2（2026-10-30）：依据游戏源码勘察（docs/combat-actions.md）补充战斗内选择类动作：hand_select / grid_select / scry / potion_discard。
 
 这是 `neow-sim`、`neow-bridge`、`neow-ai` 三个子项目共享的**唯一接口真相源**。
 任何一方的接口改动都必须先改这里，并同步三方的 conformance 测试。
@@ -77,6 +79,12 @@
 { "type": "event",   "option_index": 1 }
 { "type": "rest",    "option": "sleep | smith | dig | ..." }
 { "type": "reward",  "take_indices": [0, 2], "take_potion": false, "skip": false }
+
+// —— 战斗内选择屏（v0.2，源码勘察：HandCardSelectScreen / GridCardSelectScreen / Scry）——
+{ "type": "hand_select",  "indices": [0, 3] }        // 手牌选择屏：过量弃牌、赌博、双持等
+{ "type": "grid_select",  "pile": "draw|discard|exhaust|hand|deck", "indices": [0, 1] }  // 牌堆网格选择屏：寻求、挖掘、发现等
+{ "type": "scry", "discard_indices": [0, 2], "top_indices": [1, 3] }   // 占卜：置顶顺序敏感
+{ "type": "potion_discard", "potion_index": 1 }        // 倒掉药水
 ```
 
 ## step 语义
