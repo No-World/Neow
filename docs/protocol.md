@@ -7,6 +7,9 @@
 > 卡牌奖励屏（card_pick / card_bowl / skip）、宝箱（chest_open）、Boss 遗物（relic）、Boss 门（boss）、
 > 商店进入（shop_enter）、通用推进/后退（proceed / cancel）；明确选择屏动作为参数化描述符；
 > 定义 bridge 传输封装（见文末）。
+> v0.4（2026-10-31）：`play` 支持按 `card_uuid`/`card_id` 定位（免疫手牌下标漂移，legal 动作自带两者）；
+> 事件选项附带结构化 `effects`（效果字典，种子表见 neow-bridge resources/event_effects.json，与 sim 数据同源共建）；
+> 事件翻页稳定（落定等待选项表静止）。
 
 这是 `neow-sim`、`neow-bridge`、`neow-ai` 三个子项目共享的**唯一接口真相源**。
 任何一方的接口改动都必须先改这里，并同步三方的 conformance 测试。
@@ -95,6 +98,8 @@
 ```jsonc
 { "type": "end_turn" }
 { "type": "play",    "card_index": 2, "target": 0 }        // target = monsters 下标；无目标卡省略
+{ "type": "play",    "card_id": "Shiv", "target": 0 }     // v0.4：按卡牌ID定位（推荐，免疫下标漂移）
+{ "type": "play",    "card_uuid": "4be0...", "target": 0 } // v0.4：按UUID精确定位
 { "type": "potion",  "potion_index": 1, "target": null }  // target 仅投掷类药水需要
 { "type": "potion_discard", "potion_index": 1 }             // 倒掉药水（战斗中/药水满槽领奖时）
 { "type": "relic",   "relic_index": 0 }                     // v0.3：Boss 遗物三选一屏（原版无其余可主动使用遗物）
