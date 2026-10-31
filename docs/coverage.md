@@ -49,8 +49,8 @@
 | 内容 | 数据提取 | 行为实现 |
 |---|---|---|
 | 怪物 | 73/73 ✅ | 58/73（MonsterKind 逐只手写，Act 1-4 全覆盖——全部遭遇/精英/Boss/心脏） |
-| power | 123 条 ✅ | 45 种（PowerKind 枚举，含钩子行为） |
-| 遗物 | 186 条 ✅ | 0（战斗内主动遗物待做） |
+| power | 123 条 ✅ | 47 种（PowerKind 枚举，含钩子行为） |
+| 遗物 | 186 条 ✅ | 50/186（RelicKind 枚举，战斗内触发遗物第一批；商店/事件/局外钩子待 M3） |
 | 药水 | 43 条 ✅ | 42/43（可执行药水全量；第 43 条为 PotionSlot 占位符——游戏用它表示空栏，引擎用 `Option::None` 等价建模，非待办） |
 | 角色 | 4/4 ✅ | 1/4（铁甲，无角色专属机制） |
 
@@ -65,7 +65,7 @@
 | 战斗内选择屏（hand/grid select、Scry、探素、姿态选择） | ✅ |
 | 充能球（Defect）/姿态（Watcher） | ✅ |
 | 药水系统（使用/丢弃/免死/掉落采样） | ✅ |
-| 主动遗物 | ❌ |
+| 战斗内触发遗物（第一批 50 只，见 relics.rs） | ✅（atBattleStart/atTurnStart/onUseCard/onExhaust/onAttacked/onShuffle/onPlayerEndTurn/onVictory） |
 | 地图/事件/商店/休息/奖励（M3） | ❌ |
 | pyo3 Python 绑定 | ❌ |
 | **L1/L2 对拍（无误的最终裁判）** | ❌ 未开始（依赖 bridge） |
