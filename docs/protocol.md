@@ -65,6 +65,20 @@
 }
 ```
 
+### 宝箱（chest）屏字段
+
+奖励在进房时已 roll（零 RNG 代价前置），开不开箱的决策信息完备：
+
+```jsonc
+"screen": { "type": "chest", "boss": false, "opened": false,
+  "chest_type": "large",            // small | medium | large | boss
+  "contents": {                     // 普通箱：必出遗物（relic_tier 已定，具体遗物开箱时由 relicRng 决定）+ 可选附赠金
+    "gold": true, "gold_base": 75,  // gold_base 为基准（实际 0.9~1.1 倍）
+    "relic_tier": "uncommon" } }
+// boss 箱："contents": { "relics": ["...","...","..."], "choose": 3 }  —— 三选一列表进房即见
+```
+legal：`chest_open` / `proceed`（不开箱直接走）。
+
 ### 休息处（rest）屏字段
 
 血量/遗物/牌组在观测顶层（player / relics / master_deck）恒定存在；休息屏选项自带后续决策所需信息，
