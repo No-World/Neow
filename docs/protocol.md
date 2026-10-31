@@ -110,7 +110,10 @@
 { "type": "shop_card_removal" }                               // 打开删卡服务（随后进入 grid_select）
 { "type": "event",   "option_index": 1 }
 { "type": "rest",    "option": "sleep | smith | dig | lift | recall | toke" }
-{ "type": "reward",  "take_indices": [0, 2], "skip": false }  // take 逐项结算；遇 CARD 项停在卡牌奖励屏
+{ "type": "reward",  "take_indices": [0, 2] }                // take 逐项结算
+{ "type": "reward",  "take_indices": [1], "card_pick": 0 }   // v0.4：CARD 项内联直选第0张（卡在 items[].cards 全量可见，一步完成）
+{ "type": "reward",  "take_indices": [1], "card_pick": "skip" } // v0.4：内联跳过该卡牌奖励
+{ "type": "reward",  "skip": true }                           // 关闭奖励屏（剩余项全部放弃）
 { "type": "card_pick", "index": 2 }                          // v0.3：卡牌奖励屏选卡（index 按奖励卡列表）
 { "type": "card_bowl" }                                       // v0.3：唱歌碗（+2 最大生命）替代拿卡
 { "type": "skip" }                                            // v0.3：跳过卡牌奖励
@@ -151,8 +154,9 @@
 - 原版游戏**没有**可通过主动点击使用的遗物（`AbstractRelic` 无 use 路径），`relic` 动作映射到 Boss 遗物三选一屏；`shop_sell` 在原版不存在，移除。
 - 原版预见（ScryAction）**不允许重排**保留牌的顺序，保留牌维持抽牌堆原序；`top_indices` 语义弱化为校验用。
 - `potion` 动作仅战斗内合法（`AbstractPotion.canUse()` 要求 RoomPhase.COMBAT）。
-- `reward.take_indices` 逐项结算：若中途某 CARD 项打开卡牌奖励屏，则当次 step 停在 `screen.type == "card_reward"`，
-  其余未处理下标作废（一次 step 最多打开一个卡牌奖励屏）。
+- `reward.take_indices` 逐项结算；CARD 项默认打开卡牌奖励屏并停在 `screen.type == "card_reward"`（其余下标作废）。
+  v0.4 推荐：CARD 项配合 `card_pick`（int=选定 / "skip"=跳过）一步完成——候选卡已在 `items[].cards` 全量可见，
+  legal_actions 为每张卡各给一个内联动作外加一个 skip 变体，无需进入子屏。
 - 药水满槽时领药水奖励：先 `potion_discard` 腾槽，再 `reward` 领取（游戏 UI 同路径）。
 
 ## bridge 传输封装（neow-bridge 专用，gym 语义不变）
