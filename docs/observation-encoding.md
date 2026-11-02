@@ -60,7 +60,7 @@ Python 侧：`emb = table[token_ids] + proj(token_feats)` → d_model 维。
 ── max_total = 150 tokens ──
 ```
 
-### 1.4 全局 Token 特征（24 维，修复 v1.0 缺失）
+### 1.4 全局 Token 特征（21 维，修复 v1.0 缺失）
 
 | # | 特征 | 归一化 | 说明 |
 |---|---|---|---|
@@ -85,9 +85,9 @@ Python 侧：`emb = table[token_ids] + proj(token_feats)` → d_model 维。
 | 19 | pending_kind | int8 → emb | 10 类 Pending 变体——挂起选择屏类型 |
 | 20 | hand_cost_zero_this_turn | 0/1 | 本回合手牌全 0 费 |
 | 21 | hand_cost_max_one | 0/1 | 手牌费用 ≤1 |
-| 22 | P_draw_engine | f32 | 下 5 张抽到引擎卡的概率（超几何） |
-| 23 | P_draw_energy | f32 | 下 5 张抽到能量卡的概率 |
-| 24 | expected_damage_in_pile | log1p(x)/log1p(999) | 牌堆总伤期望 |
+
+> ~~P_draw_engine / P_draw_energy / expected_damage~~ **已删除**：主观定义（"什么算引擎卡"）
+> + 模型可通过 predict_next_draw 辅助头自己学概率查询，且能发现人类未预定义的查询。
 
 ### 1.5 牌堆编码：bag-of-embeddings + 多 query token（替代直方图）
 
