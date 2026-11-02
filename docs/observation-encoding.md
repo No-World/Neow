@@ -93,17 +93,25 @@ Python 侧：`emb = table[token_ids] + proj(token_feats)` → d_model 维。
 
 v1.0 的单 token 直方图压缩被确认为**最大瓶颈**——64 维 MLP 无法在 752 维稀疏输入上做精确计数查询。
 
-**v2.0 方案**：每个牌堆产出 3 个 token：
+**v2.1 方案**：每个牌堆产出 5 个 token（Multi-Head Attention Pooling）：
 
 ```
-t_count = MLP(pile_size, draw_n, zero_cost_count, attack_count, skill_count, power_count)
-t_bag_mean = Σ_i (id_emb[card_i] + upgrade_flag) × count_i / Σ count_i   // 频次加权均值
-t_bag_topk = max-pool over {id_emb[card_i] + feat_i}                      // 学「最关心的那张」
+[K 个学习到的 query 向量] 对牌堆做 attention 池化（Set Transformer 式）：
+
+  t_pool_k = softmax(query_k · card_emb_i) · card_emb_i    ← k=0..3，各自学到不同关注点
+  t_count  = MLP(pile_size, zero_cost_count, min_cost, max_cost)
 ```
 
-- `t_bag_mean` 让下游 query 通过点积获得「该类卡的期望数量」——可学习的计数机制
-- `t_bag_topk` 捕捉「牌堆里最关键的一张」（如 lethal 需要的那张 Strike）
-- Rust 侧预算：bag_mean = 对牌堆做一次 embedding lookup 求均值，在引擎侧完成（非 Python 侧）
+**为什么不用 bag_mean（v2.0）**：单张均值向量无法同时编码「3 张 Strike + 1 张 Bludgeon」——Bludgeon 信号被 Strike 稀释。K=4 个 attention head 各自关注不同类卡，单卡差异不丢失。
+
+**为什么不预定义分类（v1.0）**：「攻击/技能/能力」太粗——Strike 和 Bludgeon 都是攻击但价值天差地别。Attention query 自己学到更细粒度的分组。
+
+- query_0 可能学到「关注高伤害卡」→ attend 到 Bludgeon
+- query_1 可能学到「关注防御/格挡卡」→ attend 到 Impervious
+- query_2 可能学到「关注引擎/循环卡」→ attend 到特定引擎卡
+- query_3 可能学到自由分组（训练中自发现）
+- softmax 天然按频次加权：3 张 Strike 的总 attention > 1 张 Bludgeon
+- Rust 侧：对牌堆每张卡查表 card_embedding → K 个 query 做点积 → softmax → 加权求和（在引擎侧完成，输出 K×d 维）
 
 #### Frozen Eye（冰冻之眼）条件化
 
