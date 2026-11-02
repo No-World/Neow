@@ -1,4 +1,4 @@
-# 观测编码与动作解码设计方案 v2.0
+# 观测编码与动作解码设计方案 v2.1
 
 > v1.0 三视角合成 → v2.0 DeepSeek v4.1 Flash 严格审查修订。
 > 审查报告：`subagent-artifacts/9fc8dd80_delegate_output.md`
@@ -40,7 +40,7 @@ struct Observation {
 
 Python 侧：`emb = table[token_ids] + proj(token_feats)` → d_model 维。
 
-### 1.3 序列布局（MAX_T = 150）
+### 1.3 序列布局（MAX_T = 224）
 
 ```
 [CLS]                       ← 1 token
@@ -56,8 +56,8 @@ Python 侧：`emb = table[token_ids] + proj(token_feats)` → d_model 维。
 [PILE_DISCARD]              ← 3 tokens
 [PILE_DECK]                 ← 3 tokens
 [PILE_EXHAUST]              ← 3 tokens
-[SCREEN_SPECIFIC]           ← 0-55 tokens（事件选项/商店商品/奖励项/地图可达节点/选择屏候选牌）
-── max_total = 150 tokens ──
+[SCREEN_SPECIFIC]           ← 0-64 tokens（事件选项/商店商品/奖励项/地图可达节点/选择屏候选牌）
+── max_total = 224 tokens ──
 ```
 
 ### 1.4 全局 Token 特征（21 维，修复 v1.0 缺失）
@@ -204,7 +204,7 @@ Rust 侧维护 `RELIC_PERIOD: [u8; 192]` 常量表。
 | chest | 箱型 + 内容预览 | 1-2 |
 | rest | 休息选项（sleep/smith/dig/lift/toke） | 2-4 |
 | boss_relic | 3 个候选遗物 | 3 |
-| select | **选择屏候选牌**（PilePick 的全牌堆 30-60 张） | **≤55** |
+| select | **选择屏候选牌**（PilePick 的全牌堆 30-60 张） | **≤64** |
 | game_over | 胜负 | 1 |
 
 **地图改进**（v1.0 的行池化丢失边信息）：
@@ -278,9 +278,9 @@ struct LegalActions {
     flat: Vec<(u8, u8, u8)>,  // (type, entity_slot, target_slot)
     /// 分步 mask（按当前观测 + 已选前缀在线计算）
     type_mask:   [bool; 18],
-    /// entity 槽位 mask，dim = MAX_T (150)，非 24
+    /// entity 槽位 mask，dim = MAX_T (224)，非 24
     entity_mask: [bool; MAX_T],
-    /// target 槽位 mask，dim = MAX_T (150)
+    /// target 槽位 mask，dim = MAX_T (224)
     target_mask: [bool; MAX_T],  // 仅 Single 时非全 true
 }
 ```
@@ -310,9 +310,9 @@ impl GymEnv {
         -> (Observation, LegalActions, f32, bool, Info);
 
     /// 观测：拆分 ids + feats + types（Python 做 embedding lookup）
-    fn obs_token_types(&self) -> Py<PyArray1<i8>>;    // (150,)
-    fn obs_token_ids(&self) -> Py<PyArray2<i32>>;     // (150, 3)
-    fn obs_token_feats(&self) -> Py<PyArray2<f32>>;   // (150, F)
+    fn obs_token_types(&self) -> Py<PyArray1<i8>>;    // (224,)
+    fn obs_token_ids(&self) -> Py<PyArray2<i32>>;     // (224, 3)
+    fn obs_token_feats(&self) -> Py<PyArray2<f32>>;   // (224, F)
     fn obs_seq_len(&self) -> usize;
 
     /// 动作 mask：(3, 150) bool
@@ -336,10 +336,10 @@ impl GymEnv {
 Rust 侧编译时生成 + hash 校验：
 
 ```rust
-pub static CARD_VOCAB: &[&str] = &[...];   // 376（基础 ID，升级用 offset flag 而非独立 vocab）
+pub static CARD_VOCAB: &[&str] = &[...];   // 448（含诅咒/状态/衍生牌）（基础 ID，升级用 offset flag 而非独立 vocab）
 pub static RELIC_VOCAB: &[&str] = &[...];   // 192
 pub static MONSTER_VOCAB: &[&str] = &[...];  // 80
-pub static POWER_VOCAB: &[&str] = &[...];    // 128
+pub static POWER_VOCAB: &[&str] = &[...];    // 170（含 engine 实际数+余量）
 pub static POTION_VOCAB: &[&str] = &[...];   // 48
 pub static RELIC_PERIOD: [u8; 192] = [...];  // 遗物周期表
 
@@ -391,7 +391,7 @@ Python 启动时校验 hash，不匹配硬失败。
 | 6 | 缺 Confirm/ToggleSelect | 多选屏 deadlock | 新增 2 个 type |
 | 7 | intent 8 变体 | 错 | **11** 变体 |
 | 8 | token 64 维 | 数学矛盾 | **拆 ids/feats，Python 查表** |
-| 9 | max 80 token | 加总 93 溢出 | **MAX_T = 150** |
+| 9 | max 224 token | 加总 93 溢出 | **MAX_T = 224** |
 | 10 | 手牌 position emb | 出牌序歧义 | **不用**；改 drawn_this_turn 标志 |
 | 11 | 地图行池化 | 丢失边信息 | **候选节点 + 路径摘要** |
 | 12 | 遗物 counter 绝对值 | /99 压没差异 | **counter/period + ready** |
