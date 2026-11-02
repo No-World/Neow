@@ -103,8 +103,25 @@ t_bag_topk = max-pool over {id_emb[card_i] + feat_i}                      // 学
 
 - `t_bag_mean` 让下游 query 通过点积获得「该类卡的期望数量」——可学习的计数机制
 - `t_bag_topk` 捕捉「牌堆里最关键的一张」（如 lethal 需要的那张 Strike）
-- 抽牌堆额外给 **top-2 卡的 id_emb**（覆盖 FrozenEye 遗物的全可见场景）
 - Rust 侧预算：bag_mean = 对牌堆做一次 embedding lookup 求均值，在引擎侧完成（非 Python 侧）
+
+#### Frozen Eye（冰冻之眼）条件化
+
+持有 Frozen Eye 时，玩家**合法可知**抽牌堆的精确顺序——协议必须体现：
+
+```
+有 Frozen Eye 时，DRAW 额外加最多 10 个序列 token：
+  [DRAW_SEQ_0]  ← 精确第 0 张（下回合第一抽）
+  [DRAW_SEQ_1]  ← 精确第 1 张
+  ...
+  [DRAW_SEQ_9]  ← 精确第 9 张（或堆底，取 min(pile_size, 10)）
+  + 保留 bag 3 token（整体统计仍有用）
+
+无 Frozen Eye 时：仅 bag 3 token（无序集合——玩家不知顺序，协议不泄漏）
+```
+
+模型自动学到：序列 token 出现 = 有 Frozen Eye = 可做确定性规划。
+信息可见性与遗物持有状态一致——不泄漏隐藏信息。
 
 ### 1.6 怪物 Token（含 move_history + intent 11 变体）
 
@@ -114,7 +131,7 @@ t_bag_topk = max-pool over {id_emb[card_i] + feat_i}                      // 学
 | hp | hp/max_hp |
 | max_hp | log(max_hp)/log(999) |
 | block | x/(x+30) |
-| intent_type | int8 → emb (**11 变体**：Attack/DefendBuff/AttackDefend/AttackBuff/AttackDebuff/Buff/Debuff/StrongDebuff/Defend/Sleep/Unknown/Escape) |
+| intent_type | int8 → emb (**11 变体**：Attack/DefendBuff/AttackDefend/AttackBuff/AttackDebuff/Buff/Debuff/StrongDebuff/Defend/Sleep/Unknown/Escape)。持有 Runic Dome 时强制 Unknown |
 | intent_damage | x/(x+30)（已修正值） |
 | intent_count | min(x,5)/5 |
 | last_move_1 | int8/8 → scalar（move_history[-1]） |
