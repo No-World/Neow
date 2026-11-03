@@ -21,6 +21,11 @@
 - **固定 shape**：pad 到 max size，方便批处理
 - **数值归一化**：所有数值 → [0,1] 或 [-1,1]，避免量纲差异
 - **ID → embedding**：categorical 用查表（Python 侧 `nn.Embedding`），Rust 只输出 int 索引
+- **不编码稀有度**（刻意排除）：`rarity` 既不作为 ID 也不作为特征维度。
+  单卡强度 / 组合强度与稀有度无因果关系，喂给它只会让模型学到「稀有=强」的伪先验
+  （例如 Snecko Eye 下的稀有度与期望、诅咒牌、状态牌都会让该先验失效）。
+  稀有度只作为**引擎内部数据**用于：卡牌奖励的 rarity roll、Neow transform 的池序、
+  商店进货池。它永远不出现在观测中。
 
 ### 1.2 接口拆分（Rust 无法产出 learned embedding）
 

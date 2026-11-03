@@ -69,3 +69,93 @@
 - [ ] L1：100 种子 × JawWorm 战斗，观测哈希 100% 一致
 - [ ] L2：整局黄金轨迹 100% 一致（豁免点不计）
 - [ ] 偏差登记表 D-01/D-02 在 sim 中有对应防御测试
+
+---
+
+## 7. 实测基线（2026-04，seed=PMCWKZEF）
+
+### 7.1 对拍工具链
+
+旧版 `parity_check.py` 只重放动作、断言「不抛异常」，**不比对任何状态**——
+「8 条轨迹 1062 步全 PASS」的实际含义仅为「引擎在 1062 个动作下不崩溃」。
+已替换为真 diff 工具链：
+
+| 工具 | 作用 |
+|---|---|
+| `neow-sim/tests/conformance/record_trace.py` | 录制真游戏轨迹，每步附 `get_state` 完整快照（含 13 条 RNG 计数器） |
+| `neow-sim/tests/conformance/parity_diff.py` | 逐字段 diff（hp/energy/hand/monsters/piles/relics/rng），差异即 FAIL |
+| `GymEnv.state_json()` | 引擎侧结构化状态导出（字段名与 bridge `Obs` 对齐） |
+| `MonsterKind::id()` | 怪物 id 与 bridge `monsterId` 逐字节对齐 |
+
+### 7.2 已验证对齐项
+
+基线：`PMCWKZEF`（seed=1585262650280）/ A0 / Ironclad / floor 1 turn 1。
+证据来自 bridge `get_state` 与 `.tools/javagen/{MapDump,NeowDump,EncDump}.java`
+直接调用真游戏 jar 的产物。
+
+**13 条 RNG 计数器（进入首场战斗时）全部精确一致：**
+
+| 流 | sim | 真游戏 |
+|---|---|---|
+| monster | 38 | 38 |
+| map | 95 | 95 |
+| relic | 5 | 5 |
+| monster_hp | 6 | 6 |
+| ai | 2 | 2 |
+| shuffle | 1 | 1 |
+| misc | 2 | 2 |
+| event / merchant / card / treasure / potion / card_random | 0 | 0 |
+
+**首场战斗：** `FuzzyLouseNormal 15/15 + FuzzyLouseNormal 12/12`（种类与 HP 均一致）
+
+**Neow 4 个选项：** Transform a card / Max HP +10% / Rare relic (Lose 10% max HP) / Boss relic swap
+
+### 7.3 为达成对齐而修正的语义（均已落地）
+
+| 项 | 原始错误 | 正确语义 |
+|---|---|---|
+| mapRng 播种 | 全流共用 `seed` | 每幕独立：`seed+actNum`(A1) / `*100`(A2) / `*200`(A3) / `*300`(A4) |
+| 进房重播种 | 无 | `monsterHp/ai/shuffle/cardRandom/misc = new Random(seed+floorNum)` |
+| 遗物池洗牌 | 未实现 | 开局 5 个池各 `Collections.shuffle(..., new Random(relicRng.randomLong()))` |
+| `Collections.shuffle(roomList, rng.random)` | 用 `rng.random_range`（推进 counter） | 走 `RandomXS128.nextLong(n)`，**不推进 STS counter**（否则 map counter 154 vs 95） |
+| 地图祖先规则 | 「修正」了 Java 的笔误 | Java `getCommonAncestor` 比较的是 `node1.x < node2.`**`y`**——必须照抄这个 bug |
+| 遭遇权重 roll | 按定义序累积 | `normalizeWeights` 先 `Collections.sort`（weight 升序）再归一化，roll 遍历排序后列表 |
+| 弱怪数量 | 恒 2 | Act1 = 3，Act2/3 = 2 |
+| 强怪数量 | `weak+12` | 「再追加 12 项」→ 总数 = `weak + 1(首强) + 12` |
+| 首强怪 | 无排除 | `populateFirstStrongEnemy` + `generateExclusions`（按弱怪末项排除） |
+| 怪物种类 | 静态写死 | 运行时掷：`2 Louse` 逐只 `miscRng.randomBoolean()`；`Small Slimes` 逐只；`Gang/Shapes` 无放回 |
+| Boss 选择 | 未消耗 RNG | `Collections.shuffle(list, new java.util.Random(monsterRng.randomLong()))` 取 [0] |
+| setHp 顺序 | 先 bite 后 HP | 先 `setHp` 后 `biteDamage`（顺序决定 `monsterHpRng` 取值） |
+| 开局流程 | 构造即 `enter_next_room` | floor 0 = Neow（独立状态）→ 地图屏 → floor 1 = 首战 |
+| 地图起点 | `pos=(0,x)` 直接当已起步 | 真游戏起点是虚拟节点 `y=-1`；首次选点是选 row 0 的**列** |
+| Neow 抽签 | 固定 4 项表 | `NeowEvent.rng = new Random(Settings.seed)`，4 个 category 依次抽；cat2 先抽 drawback 并按冲突剔除选项 |
+| Neow transform | 用 `cardRng` 的 `roll_rarity` | `transformCard(c, false, NeowEvent.rng)`——**用 NeowEvent.rng，cardRng 不变** |
+
+### 7.4 已知未解决
+
+| 项 | 现状 | 定位线索 |
+|---|---|---|
+| Neow Transform 选出的具体卡 | 引擎与真游戏不同（引擎给 Reaper，真游戏给 Power Through） | 池 = 红 COMMON(20)+UNCOMMON(36)+RARE(16)=72，按 `commonCardPool → srcUncommonCardPool → srcRareCardPool` 序；`nextInt(72)` 第 6 次调用 = 53。Power Through 应在 index 49，实测池 index 53 才是 Reaper。怀疑 `CardLibrary.cards` 的 `HashMap` 迭代序影响（`addColorlessCards` 走 `entrySet()`），或真游戏该局 Neow 选择与假设不同 |
+| 手牌第 4 张 | 引擎 `Strike_R`，真游戏 `Defend_R` | 由上一条传导（牌组少一张 Defend 的替代） |
+
+### 7.5 复现方式
+
+```bash
+# 1. 编译 pyo3 并放置 .so
+cargo build --manifest-path neow-sim/crates/py/Cargo.toml
+cp neow-sim/target/debug/libneow_sim.so neow-sim/python/neow_sim.so
+
+# 2. 真游戏需可见窗口启动并监听 37771
+cd neow-bridge && python3 scripts/rpc.py ping
+
+# 3. 录制带状态轨迹
+python3 neow-sim/tests/conformance/record_trace.py --seed PMCWKZEF --asc 0 --auto \
+        --out traces/pmcwkzef.jsonl --max-steps 300
+
+# 4. 逐字段 diff
+python3 neow-sim/tests/conformance/parity_diff.py traces/pmcwkzef.jsonl \
+        --fields hp,max_hp,gold,player,hand,monsters,piles,relics,rng
+```
+
+> 注：`bridge get_state` 需游戏在实际渲染帧（离屏/最小化会让 GL 冻结），
+> 且 `new_run` 后必须等地图屏出现才能采样。
