@@ -133,10 +133,21 @@
 
 ### 7.4 已知未解决
 
-| 项 | 现状 | 定位线索 |
-|---|---|---|
-| Neow Transform 选出的具体卡 | 引擎与真游戏不同（引擎给 Reaper，真游戏给 Power Through） | 池 = 红 COMMON(20)+UNCOMMON(36)+RARE(16)=72，按 `commonCardPool → srcUncommonCardPool → srcRareCardPool` 序；`nextInt(72)` 第 6 次调用 = 53。Power Through 应在 index 49，实测池 index 53 才是 Reaper。怀疑 `CardLibrary.cards` 的 `HashMap` 迭代序影响（`addColorlessCards` 走 `entrySet()`），或真游戏该局 Neow 选择与假设不同 |
-| 手牌第 4 张 | 引擎 `Strike_R`，真游戏 `Defend_R` | 由上一条传导（牌组少一张 Defend 的替代） |
+**当前无未解决项**（生成链层面）。
+
+原「Neow Transform 选出的具体卡」已结案：
+
+- 池的正确构造是 `initializeCardPools` → `tmpPool`（= `addRedCards` 的**类名升序**）
+  按稀有度分别 append 到 common/uncommon/rare 池，`returnTrulyRandomCardFromAvailable`
+  再按 common → uncommon → rare 串接；排除被 transform 的卡（BASIC 不在池内，故通常无影响）
+- 红卡池 = COMMON 20 + UNCOMMON 36 + RARE 16 = **72**，排序键 = (稀有度序, 类名)
+- `NeowEvent.rng` 前 5 次被 cat0/cat1/drawback/cat2/cat3 消耗，第 6 次 `nextInt(72) = 53`
+  → **Spot Weakness**；`Power Through` 位于 index 41，任何单次调用都取不到
+- 结论：引擎实现正确；此前 bridge 那局的 `master_deck` 含 `Power Through`，
+  应是 `drive_win.py` 多次 `new_run` 重试导致的牌组残留，不是干净的 Neow 结果。
+  已用 `neow_transform_uses_neow_rng_not_card_rng` 回归测试锁定该行为
+- 另附带修掉：`Searing Blow` 稀有度提取失败（提取器只扫无参构造器，其 `super(...)`
+  在 `SearingBlow(int)` 里）→ 池少一张（71 vs 72）
 
 ### 7.5 复现方式
 
