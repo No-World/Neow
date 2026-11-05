@@ -72,3 +72,7 @@ Neow/                    # GitHub 私有仓库：No-World/Neow
 1. `neow-sim/`：骨架已就绪（`cargo build` 即可编译），直接开工 M2——“Strike/Defend/Bash 打 JawWorm”最小战斗闭环。
 2. 克隆 `sts_lightspeed`，读它的战斗模拟代码，对照实现伤害/格挡/力量管线。
 3. `neow-bridge/`（模组）后置到 P2 再动工，期间不需要装游戏。
+
+## 许可与声明
+
+本项目原创代码与文档以 [MIT License](LICENSE) 授权；《Slay the Spire》游戏相关内容的知识产权归 Mega Crit 所有，不受 MIT 约束，详见 [LICENSE](LICENSE) 第三方声明。
