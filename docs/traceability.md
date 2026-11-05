@@ -117,7 +117,8 @@
 | 大史莱姆分裂（case3 无 RollMoveAction；4 参构造器 newHp=currentHealth 不掷 HP；SpawnMonsterAction→init→rollMove×2；按 x 位序 [M左,L尸,M右] 包夹插入） | ✅（floor14：monsterHp=1、ai=4、target 下标逐位对上） |
 | FungiBeast/SlaverBlue/SlaverRed/Sentry spawn 字段与 take_turn 取用槽位对齐 | ✅（曾错存 chomp/thrash，bite 打 0） |
 | Guardian setHp(240)（1 参 setHp 仍耗 monsterHpRng.nextPick 1 次）；战斗继承全局流 | ✅ |
-| Guardian 30 伤害阈值模式切换：确定性招式链（Charge→Fierce→Vent→Whirl 循环，takeTurn **无 RollMoveAction**，setMove 链式指定下招）；damage() 累计实际掉血（含 THORNS，如 Mercury）≥ 阈值 → ChangeState(DEFENSIVE) 排底（+20 格挡、阈值 +10、Close Up=Sharp Hide 3）；Twin Slam 双击后 Offensive 回归（清格挡/重挂计数/去刺） | ✅（PMCWKZEF floor16 Boss 战全程零分歧；⚠️ Sharp Hide 引擎按每次受击触发、真游戏按攻击卡触发——单段攻击等价，多段有偏差） |
+| Guardian 30 伤害阈值模式切换：确定性招式链（Charge→Fierce→Vent→Whirl 循环，takeTurn **无 RollMoveAction**，setMove 链式指定下招）；damage() 累计实际掉血（含 THORNS，如 Mercury）≥ 阈值 → ChangeState(DEFENSIVE) 排底（+20 格挡、阈值 +10、Close Up=Sharp Hide 3）；Twin Slam 双击后 Offensive 回归（清格挡/重挂计数/去刺） | ✅（PMCWKZEF floor16 Boss 战全程零分歧）
+| Sharp Hide（`SharpHidePower.onUseCard`）：**每张攻击卡**触发 1 次 THORNS 伤；技能/能力牌不触发；**不受击触发** | ✅ 独立 `PowerKind::SharpHide`（曾误用 Thorns＝每次受击反弹，多段攻击卡会多掉血、Mercury 之类的伤害也会误触发） |
 
 ## 10.6 怪物构造掷点审计（全 64 类，tools/audit_monster_rolls.py）
 
