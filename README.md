@@ -62,6 +62,11 @@ Neow/                    # GitHub 私有仓库：No-World/Neow
 - `bridge.yml`：neow-bridge 的资源校验（完整构建需游戏 jar，见工作流内注释）
 - `ai.yml`：neow-ai 的 lint / 语法检查
 
+## 贡献规范
+
+**动手前必读**：[CONTRIBUTING.md](CONTRIBUTING.md) —— 尤其是「实现前先贴源码」这条铁律。
+本项目唯一目标是与真游戏逐位一致，凭印象写实现产生的错误无法从症状反推。
+
 ## 第一步
 
 1. `neow-sim/`：骨架已就绪（`cargo build` 即可编译），直接开工 M2——“Strike/Defend/Bash 打 JawWorm”最小战斗闭环。
