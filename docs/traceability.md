@@ -120,6 +120,26 @@
 | Guardian 30 伤害阈值模式切换：确定性招式链（Charge→Fierce→Vent→Whirl 循环，takeTurn **无 RollMoveAction**，setMove 链式指定下招）；damage() 累计实际掉血（含 THORNS，如 Mercury）≥ 阈值 → ChangeState(DEFENSIVE) 排底（+20 格挡、阈值 +10、Close Up=Sharp Hide 3）；Twin Slam 双击后 Offensive 回归（清格挡/重挂计数/去刺） | ✅（PMCWKZEF floor16 Boss 战全程零分歧）
 | Sharp Hide（`SharpHidePower.onUseCard`）：**每张攻击卡**触发 1 次 THORNS 伤；技能/能力牌不触发；**不受击触发** | ✅ 独立 `PowerKind::SharpHide`（曾误用 Thorns＝每次受击反弹，多段攻击卡会多掉血、Mercury 之类的伤害也会误触发） |
 
+## 10.8 Boss 特殊机制（Act1-4 逐行核对）
+
+| Boss | 机制 | 状态 |
+|---|---|---|
+| Hexaghost | Activate→Divider（玩家 HP/12+1 ×6）→ 六球循环（Sear/Tackle/…）→ Inferno（升级全部灼伤 + 3 张升级灼伤入弃堆） | ✅ 核对无改动 |
+| SlimeBoss | HP **A9** 150/140；Slam 与 tackle **A4**；Goop A19+ 5 张否则 3；半血定招分裂 → SpikeSlime_L(左)+AcidSlime_L(右) 继承当前 HP；无 RollMoveAction | ✅（曾 4 处错值 + Slam 0 伤 + 缺分裂） |
+| BronzeAutomaton | numTurns==4 出 Hyper Beam 并清零；A19+ 光束后接强化而非眩晕；case 4 召唤 2 铜球（各 rollMove） | ✅ 核对无改动 |
+| TheCollector | turnsTaken 显式计数（≥3 → MEGA 一次）；isMinionDead 只看火把头槽；复活占原位 | ✅（曾用 history.len 早一回合、minion 判定过宽） |
+| Champ | numTurns/forgeTimes/thresholdReached；爆怒清减益+力量×3；处决 ×2；A4/A9/A19 数值 | ✅ 核对无改动 |
+| AwakenedOne | 半死转阶段（cannotLose 恒真）→ REBIRTH 满血 320/300、清 DEBUFF、首招 Dark Echo；Regenerate **atEndOfTurn 且半死不回血** | ✅（曾回血时序错+半死也回血+不清减益） |
+| Donu / Deca | 交替 攻击/增益；Deca.CIRCLE 全体 +16 格挡（A19+ 加 3 护甲）；Donu.CIRCLE 全体 +3 力量 | ✅（曾漏 16 格挡） |
+| TimeEater | 半血一次 Haste；getMove 递归重掷；**TimeWarp 12 张 → 结束回合 + 全体 +2 力量** | ✅（曾漏 +2 力量） |
+| CorruptHeart | Debilitate 五连状态；增益轮转 神器2→亡律+1→苦痛之刺→力量+10→力量+50；buffCount 执行计数 | ✅（曾差一） |
+| SpireShield / SpireSpear | moveCount%3 轮转 + randomBoolean 分支 | ✅ 核对无改动 |
+
+| 系统性 | 状态 |
+|---|---|
+| **所有被召唤物**：`SpawnMonsterAction → init() → rollMove()` ⇒ 每个召唤物消耗 1 次 aiRng（Automaton 铜球 / Collector 火把头 / Gremlin Leader 小鬼 / Reptomancer 匕首） | ✅（曾硬编码首招不掷 → 召唤后整条 aiRng 流错位） |
+| ⚠️ 召唤物「按 x 位序插入」尚未建模（引擎用槽位/追加）—— 只影响多体战目标下标，不影响 RNG 流 | ⚠️ 待 Act2/3 真实轨迹 |
+
 ## 10.6 怪物构造掷点审计（全 64 类，tools/audit_monster_rolls.py）
 
 | 规律 | 状态 |
@@ -173,4 +193,4 @@
 
 ---
 
-**统计**：✅ 83 项 / ⚠️ 14 项 / ❌ 6 项（2026-11-05 怪物/遭遇构造掷点全量审计后更新）
+**统计**：✅ 94 项 / ⚠️ 15 项 / ❌ 6 项（2026-11-05 Boss 特殊机制核对后更新）
