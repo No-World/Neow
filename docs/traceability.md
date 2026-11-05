@@ -113,6 +113,23 @@
 | rollMove 恒消耗 aiRng.random(99) | ✅ |
 | 死亡两档判定（isDying/isDead） | ⚠️ 单帧简化（无死亡动画窗口），L1 校验 |
 | 其余 71 怪 | ❌ 数据全量，行为待逐怪接入 |
+| Exordium Wildlife/Thugs「候选全构造」（bottomWildlife/bottomHumanoid：5 只候选全部 spawn 占 monsterHpRng，miscRng 选 2/1） | ✅（实测 PMCWKZEF floor11 monsterHp=7=6 构造+1 CurlUp） |
+| 大史莱姆分裂（case3 无 RollMoveAction；4 参构造器 newHp=currentHealth 不掷 HP；SpawnMonsterAction→init→rollMove×2；按 x 位序 [M左,L尸,M右] 包夹插入） | ✅（floor14：monsterHp=1、ai=4、target 下标逐位对上） |
+| FungiBeast/SlaverBlue/SlaverRed/Sentry spawn 字段与 take_turn 取用槽位对齐 | ✅（曾错存 chomp/thrash，bite 打 0） |
+| Guardian setHp(240)（1 参 setHp 仍耗 monsterHpRng.nextPick 1 次）；战斗继承全局流 | ✅ |
+| Guardian 30 伤害阈值模式切换（Twin/Defensive 相位、Fierce Bash 32） | ❌ **下一个工作项**（回放停在 Boss turn3 意图分叉） |
+
+## 10.5 遗物/药水/奖励链路（PMCWKZEF 全程回放新增）
+
+| 环节 | 状态 |
+|---|---|
+| 遗物预洗池 = `Collections.shuffle(pool, Random(relicRng.randomLong()))` ×5，池序 = **Java HashMap 迭代序**（sharedRelics+redRelics） | ✅（javagen/HashMapOrder 实测 = Python 模拟 138/138、11/11；RELIC_POOL_ITER_ORDER 生成入源） |
+| 精英 tier 阈值：relicRng.random(0,99) <50 COMMON / >82 RARE（**精英房 82，普通房 85**） | ✅（曾 85，floor7 分叉） |
+| pop_pooled_relic：从预洗池 remove(0)，运行时 0 次 relicRng | ✅ |
+| 奖励药水 = addPotionToRewards：40%+pity 判定 → returnRandomPotion(false)：tier(65/25/10) → **稀有度不符重抽**（Fruit Juice 跳过）；实测 floor10 消耗 1+1+4=6 | ✅ |
+| Exordium Wildlife/Thugs 遭遇（见 §10） | ✅ |
+| 战斗内 monsterHp 消耗：怪物 ctor（setHp/bite）+ prebattle CurlUp（虱）+「候选全构造」未选中者 | ✅ |
+| per-floor 重播种 5 流（monsterHp/ai/shuffle/cardRandom/misc）；**monster/map/relic/event 等为局级全局流** | ✅ |
 
 ## 11. 进阶与角色
 
@@ -133,4 +150,4 @@
 
 ---
 
-**统计**：✅ 62 项 / ⚠️ 14 项 / ❌ 6 项（2026-10-30，随核对更新本表）
+**统计**：✅ 74 项 / ⚠️ 14 项 / ❌ 7 项（2026-11-05 PMCWKZEF 全程回放后更新本表）
