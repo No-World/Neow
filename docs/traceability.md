@@ -130,8 +130,11 @@
 | 涅奥「升级一张牌」走 `can_upgrade`（诅咒/状态不可升级） | ✅（曾升级 AscendersBane） |
 | **虚无（ethereal）**：回合末先消耗进消耗堆，再弃其余手牌 | ✅（曾完全未实现 → A20 每回合多留 1 张） |
 | 商店遗物 `returnEndRandomRelicKey`：从预洗池**末尾**取，0 次 relicRng | ✅（曾每次掷 1 次，3 个槽多 3 次） |
-| Havoc（PlayTopCardAction）：先 getRandomMonster(null,true,cardRandomRng) 再打顶牌 | ✅ 掷点已补；⚠️ 顶牌的完整出牌管线（目标/多段）待接 |
-| AcidSlime_M 意图（move1=ATTACK_DEBUFF）与伤害槽（chomp/thrash_block） | ✅ |
+| Havoc（PlayTopCardAction）：先 getRandomMonster(null,true,cardRandomRng)；顶牌 `exhaustOnUseOnce=true` ⇒ **恒进消耗堆** | ✅ |
+| AcidSlime_M：意图（move1=ATTACK_DEBUFF）、TACKLE A2+ = **12**、WOUND 塞 1 张 Slimed、槽位 chomp/thrash_block/ritual(Weak) | ✅ |
+| **GremlinNob A18+ 分支**：不看 num，只按「最近两招无 2」→ Skull Bash，否则 Bull Rush | ✅（曾只实现 A<18 分支 → A20 意图分叉） |
+| 死怪占位：monsters 数组保留尸体（target 下标依赖完整数组序）、死怪 hp 钳 0 | ✅（state_json 曾跳过死怪，掩盖下标错位） |
+| 终局：两条轨迹（A0 floor0→16 Boss / A20 floor1→死亡）**全程零分歧** | ✅ |
 
 ## 10.8 Boss 特殊机制（Act1-4 逐行核对）
 
@@ -206,4 +209,4 @@
 
 ---
 
-**统计**：✅ 100 项 / ⚠️ 16 项 / ❌ 6 项（2026-11-06 A20 第二条轨迹后更新）
+**统计**：✅ 105 项 / ⚠️ 15 项 / ❌ 6 项（2026-11-06 两条轨迹均全程零分歧后更新）
