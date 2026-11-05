@@ -120,6 +120,19 @@
 | Guardian 30 伤害阈值模式切换：确定性招式链（Charge→Fierce→Vent→Whirl 循环，takeTurn **无 RollMoveAction**，setMove 链式指定下招）；damage() 累计实际掉血（含 THORNS，如 Mercury）≥ 阈值 → ChangeState(DEFENSIVE) 排底（+20 格挡、阈值 +10、Close Up=Sharp Hide 3）；Twin Slam 双击后 Offensive 回归（清格挡/重挂计数/去刺） | ✅（PMCWKZEF floor16 Boss 战全程零分歧）
 | Sharp Hide（`SharpHidePower.onUseCard`）：**每张攻击卡**触发 1 次 THORNS 伤；技能/能力牌不触发；**不受击触发** | ✅ 独立 `PowerKind::SharpHide`（曾误用 Thorns＝每次受击反弹，多段攻击卡会多掉血、Mercury 之类的伤害也会误触发） |
 
+## 10.9 第二条真实轨迹（A20 战士 TRACE02A，traces/a20_trace02a.jsonl）
+
+| 环节 | 状态 |
+|---|---|
+| 录制：NeowBridge 实机 113 步（floor 7 阵亡）；record_trace.py 修 legal_actions 传参 + cheat_draw_order | ✅ |
+| 回放工具 parity_replay.py 支持涅奥多动作编排（event→grid_select→map） | ✅ |
+| 起始牌组 A10+ 的 AscendersBane 在**最前**（穷举排列反解洗牌结果唯一匹配） | ✅（曾 push 到末尾） |
+| 涅奥「升级一张牌」走 `can_upgrade`（诅咒/状态不可升级） | ✅（曾升级 AscendersBane） |
+| **虚无（ethereal）**：回合末先消耗进消耗堆，再弃其余手牌 | ✅（曾完全未实现 → A20 每回合多留 1 张） |
+| 商店遗物 `returnEndRandomRelicKey`：从预洗池**末尾**取，0 次 relicRng | ✅（曾每次掷 1 次，3 个槽多 3 次） |
+| Havoc（PlayTopCardAction）：先 getRandomMonster(null,true,cardRandomRng) 再打顶牌 | ✅ 掷点已补；⚠️ 顶牌的完整出牌管线（目标/多段）待接 |
+| AcidSlime_M 意图（move1=ATTACK_DEBUFF）与伤害槽（chomp/thrash_block） | ✅ |
+
 ## 10.8 Boss 特殊机制（Act1-4 逐行核对）
 
 | Boss | 机制 | 状态 |
@@ -193,4 +206,4 @@
 
 ---
 
-**统计**：✅ 94 项 / ⚠️ 15 项 / ❌ 6 项（2026-11-05 Boss 特殊机制核对后更新）
+**统计**：✅ 100 项 / ⚠️ 16 项 / ❌ 6 项（2026-11-06 A20 第二条轨迹后更新）
