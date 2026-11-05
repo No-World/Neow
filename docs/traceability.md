@@ -117,7 +117,7 @@
 | 大史莱姆分裂（case3 无 RollMoveAction；4 参构造器 newHp=currentHealth 不掷 HP；SpawnMonsterAction→init→rollMove×2；按 x 位序 [M左,L尸,M右] 包夹插入） | ✅（floor14：monsterHp=1、ai=4、target 下标逐位对上） |
 | FungiBeast/SlaverBlue/SlaverRed/Sentry spawn 字段与 take_turn 取用槽位对齐 | ✅（曾错存 chomp/thrash，bite 打 0） |
 | Guardian setHp(240)（1 参 setHp 仍耗 monsterHpRng.nextPick 1 次）；战斗继承全局流 | ✅ |
-| Guardian 30 伤害阈值模式切换（Twin/Defensive 相位、Fierce Bash 32） | ❌ **下一个工作项**（回放停在 Boss turn3 意图分叉） |
+| Guardian 30 伤害阈值模式切换：确定性招式链（Charge→Fierce→Vent→Whirl 循环，takeTurn **无 RollMoveAction**，setMove 链式指定下招）；damage() 累计实际掉血（含 THORNS，如 Mercury）≥ 阈值 → ChangeState(DEFENSIVE) 排底（+20 格挡、阈值 +10、Close Up=Sharp Hide 3）；Twin Slam 双击后 Offensive 回归（清格挡/重挂计数/去刺） | ✅（PMCWKZEF floor16 Boss 战全程零分歧；⚠️ Sharp Hide 引擎按每次受击触发、真游戏按攻击卡触发——单段攻击等价，多段有偏差） |
 
 ## 10.5 遗物/药水/奖励链路（PMCWKZEF 全程回放新增）
 
@@ -150,4 +150,4 @@
 
 ---
 
-**统计**：✅ 74 项 / ⚠️ 14 项 / ❌ 7 项（2026-11-05 PMCWKZEF 全程回放后更新本表）
+**统计**：✅ 75 项 / ⚠️ 14 项 / ❌ 6 项（2026-11-05 Guardian 模式切换实现后更新）
