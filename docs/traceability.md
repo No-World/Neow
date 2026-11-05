@@ -119,6 +119,28 @@
 | Guardian setHp(240)（1 参 setHp 仍耗 monsterHpRng.nextPick 1 次）；战斗继承全局流 | ✅ |
 | Guardian 30 伤害阈值模式切换：确定性招式链（Charge→Fierce→Vent→Whirl 循环，takeTurn **无 RollMoveAction**，setMove 链式指定下招）；damage() 累计实际掉血（含 THORNS，如 Mercury）≥ 阈值 → ChangeState(DEFENSIVE) 排底（+20 格挡、阈值 +10、Close Up=Sharp Hide 3）；Twin Slam 双击后 Offensive 回归（清格挡/重挂计数/去刺） | ✅（PMCWKZEF floor16 Boss 战全程零分歧；⚠️ Sharp Hide 引擎按每次受击触发、真游戏按攻击卡触发——单段攻击等价，多段有偏差） |
 
+## 10.6 怪物构造掷点审计（全 64 类，tools/audit_monster_rolls.py）
+
+| 规律 | 状态 |
+|---|---|
+| `setHp(a,b)` → monsterHpRng 1 次 | ✅ 全量核对 |
+| **`setHp(int)`（单参）= setHp(hp,hp) = nextInt(1) → 仍耗 1 次** | ✅（17 类曾漏掷，已补；Guardian 首例） |
+| `super(..., monsterHpRng.random(a,b), ...)` 也耗 1 次（且在 setHp 之前） | ✅（Taskmaster/BronzeOrb/OrbWalker/TorchHead 曾少掷 1 次） |
+| super 常量（Maw/Transient/SphericGuardian）→ 0 次 | ✅ |
+| 进阶分支（if/else）只执行其一 → setHp 计 1 次 | ✅ |
+
+## 10.7 遭遇构造链审计（75 个遭遇，tools/audit_encounter_runtime.py + examples/enc_dump.rs）
+
+| 环节 | 状态 |
+|---|---|
+| misc 消耗次数 + monsterHp 消耗次数 + 怪物序列三项对拍 | ✅ 30 个主流遭遇运行期零差异 |
+| 「候选全构造」：Exordium Wildlife/Thugs 未选中候选也掷 HP | ✅（Wildlife 6 掷 / Thugs 7 掷） |
+| 「无放回抽取」：Gremlin Gang(4)/Lots of Slimes(5)/Shapes(3、4) | ✅ |
+| Gremlin Leader = 2× spawnGremlin（各 1 次 misc，独立全池）+ 本体 | ✅（曾缺分支 → 退化为单只 JawWorm） |
+| Chosen and Byrds = **[Byrd, Chosen]** 两只 | ✅（曾误写 3 只） |
+| 11 个缺失遭遇分支（4 Byrds/Sentry and Sphere/Snecko and Mystics/3 Cultists/2 Thieves/Slavers/Masked Bandits/Shelled Parasite and Fungi/Jaw Worm Horde/Colosseum Nobs/Slavers/Flame Bruiser 1-2 Orb） | ✅（其中 6 个在 Act2/3 池中可达，此前全退化单只 JawWorm） |
+| JawWorm hardMode（Jaw Worm Horde）：firstMove=false + 战前叠 Strength/Block | ✅ |
+
 ## 10.5 遗物/药水/奖励链路（PMCWKZEF 全程回放新增）
 
 | 环节 | 状态 |
@@ -150,4 +172,4 @@
 
 ---
 
-**统计**：✅ 75 项 / ⚠️ 14 项 / ❌ 6 项（2026-11-05 Guardian 模式切换实现后更新）
+**统计**：✅ 83 项 / ⚠️ 14 项 / ❌ 6 项（2026-11-05 怪物/遭遇构造掷点全量审计后更新）
